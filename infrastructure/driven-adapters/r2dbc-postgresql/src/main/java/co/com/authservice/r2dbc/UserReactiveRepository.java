@@ -7,7 +7,6 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
 
-// TODO: This file is just an example, you should delete or modify it
-public interface UserReactiveRepository extends ReactiveCrudRepository<UserEntity, BigInteger>, ReactiveQueryByExampleExecutor<UserEntity> {
+public interface UserReactiveRepository extends ReactiveCrudRepository<UserEntity, String>, ReactiveQueryByExampleExecutor<UserEntity> {
     Mono<Boolean> existsByEmail(String email);
 }

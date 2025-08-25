@@ -8,11 +8,9 @@ import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
-import java.math.BigInteger;
-
 @Repository
 public class UserReactiveRepositoryAdapter
-        extends ReactiveAdapterOperations<User, UserEntity, BigInteger, UserReactiveRepository>
+        extends ReactiveAdapterOperations<User, UserEntity, String, UserReactiveRepository>
         implements UserRepository {
 
     public UserReactiveRepositoryAdapter(UserReactiveRepository repository, ObjectMapper mapper) {
@@ -21,8 +19,7 @@ public class UserReactiveRepositoryAdapter
 
     @Override
     public Mono<User> saveUser(User user) {
-        UserEntity entity = mapper.map(user, UserEntity.class);
-        return repository.save(entity)
+        return repository.save(toData(user))
                 .map(saved -> mapper.map(saved, User.class));
     }
 
