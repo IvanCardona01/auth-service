@@ -26,8 +26,8 @@ adapters:
     port: 5432
     database: authservice_db
     schema: public
-    username: danielapps
-    password: # Empty for local user authentication
+    username: ivan
+    password: ivan123
 management:
   endpoints:
     web:
