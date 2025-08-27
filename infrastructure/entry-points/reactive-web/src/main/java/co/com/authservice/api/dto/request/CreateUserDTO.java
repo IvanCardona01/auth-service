@@ -13,7 +13,7 @@ public record CreateUserDTO(
         String name,
 
         @NotBlank(message = "El apellido no puede estar vacío")
-        String lastName,
+        String lastname,
 
         LocalDate birthdayDate,
 

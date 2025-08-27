@@ -11,6 +11,23 @@ spring:
       path: "/h2"
   profiles:
     include: null
+
+logging:
+  level:
+    root: INFO
+    co.com.authservice: DEBUG
+
+# R2DBC PostgreSQL Configuration (Local PostgreSQL)
+# Make sure PostgreSQL is running: brew services start postgresql@15
+# Database created with: createdb authservice_db
+adapters:
+  r2dbc:
+    host: localhost
+    port: 5432
+    database: authservice_db
+    schema: public
+    username: danielapps
+    password: # Empty for local user authentication
 management:
   endpoints:
     web:
@@ -20,5 +37,9 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    r2dbc:
+      enabled: true
+      timeout: 30s
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"

@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -29,7 +30,20 @@ public class Handler {
                 .map(userDTOMapper::toModel)
                 .flatMap(userUseCase::saveUser)
                 .flatMap(savedUser -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userDTOMapper.toResponse(savedUser)));
+                        .bodyValue(userDTOMapper.toResponse(savedUser)))
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .bodyValue("Error retrieving users: " + error.getMessage()));
+    }
+
+    public Mono<ServerResponse> getAllUsers(ServerRequest request) {
+        return userUseCase.getAll()
+                .map(userDTOMapper::toResponse)
+                .collectList()
+                .flatMap(users -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(users))
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .bodyValue("Error retrieving users: " + error.getMessage()));
     }
 
     private Mono<CreateUserDTO> validateDTO(CreateUserDTO dto) {

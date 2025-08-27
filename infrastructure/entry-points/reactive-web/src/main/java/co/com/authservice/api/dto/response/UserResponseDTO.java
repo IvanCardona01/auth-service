@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public record UserResponseDTO(
         String name,
-        String lastName,
+        String lastname,
         LocalDate birthdayDate,
         String address,
         String phoneNumber,
