@@ -1,33 +1,39 @@
 package co.com.authservice.r2dbc.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 
-@Entity
+@Table("users")
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private BigInteger id;
+    private Long id;
 
     private String name;
-    private String lastName;
+    private String lastname;
+
+    @Column("birthday_date")
     private LocalDate birthdayDate;
     private String address;
+    @Column("phone_number")
     private String phoneNumber;
+    @Column("base_salary")
     private BigDecimal baseSalary;
 
-    @Column(unique = true)
     private String email;
+
+
+    @Column("role_id")
+    private Long roleId;
 }

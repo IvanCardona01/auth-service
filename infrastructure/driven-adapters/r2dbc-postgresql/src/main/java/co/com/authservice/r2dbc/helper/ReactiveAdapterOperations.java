@@ -33,7 +33,7 @@ public abstract class ReactiveAdapterOperations<E, D, I, R extends ReactiveCrudR
         return data != null ? toEntityFn.apply(data) : null;
     }
 
-    public Mono<E> save(String entity) {
+    public Mono<E> save(E entity) {
         return saveData(toData(entity))
                 .map(this::toEntity);
     }

@@ -1,4 +1,5 @@
 package co.com.authservice.model.user;
+import co.com.authservice.model.role.Role;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,11 +15,13 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class User {
+    private Long id;
     private String name;
-    private String lastName;
+    private String lastname;
     private LocalDate birthdayDate;
     private String address;
     private String phoneNumber;
     private String email;
     private BigDecimal baseSalary;
+    private Role role;
 }
