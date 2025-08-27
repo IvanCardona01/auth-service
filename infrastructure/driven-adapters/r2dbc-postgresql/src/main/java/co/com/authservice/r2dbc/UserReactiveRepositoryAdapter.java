@@ -7,6 +7,7 @@ import co.com.authservice.r2dbc.entity.UserEntity;
 import co.com.authservice.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,14 +17,24 @@ public class UserReactiveRepositoryAdapter
         implements UserRepository {
 
     private final RoleReactiveRepository roleRepository;
+    private final TransactionalOperator transactionalOperator;
 
-    public UserReactiveRepositoryAdapter(UserReactiveRepository repository, RoleReactiveRepository roleRepository, ObjectMapper mapper) {
+    public UserReactiveRepositoryAdapter(UserReactiveRepository repository, 
+                                        RoleReactiveRepository roleRepository, 
+                                        ObjectMapper mapper,
+                                        TransactionalOperator transactionalOperator) {
         super(repository, mapper, d -> mapper.map(d, User.class));
         this.roleRepository = roleRepository;
+        this.transactionalOperator = transactionalOperator;
     }
 
     @Override
     public Mono<User> saveUser(User user) {
+        return saveUserInternal(user)
+                .as(transactionalOperator::transactional);
+    }
+    
+    private Mono<User> saveUserInternal(User user) {
         UserEntity userEntity = mapper.map(user, UserEntity.class);
         if (user.getRole() != null) {
             userEntity.setRoleId(user.getRole().getId());
