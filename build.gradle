@@ -8,6 +8,7 @@ buildscript {
         lombokVersion = '1.18.38'
         mapstructVersion = '1.6.3'
         jakartaVersion = '3.1.1'
+        openApiVersion = '2.7.0'
 	}
 }
 

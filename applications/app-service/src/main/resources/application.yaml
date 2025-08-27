@@ -43,3 +43,12 @@ management:
       timeout: 30s
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  api-docs:
+    enabled: true
+  packages-to-scan: co.com.authservice.api
