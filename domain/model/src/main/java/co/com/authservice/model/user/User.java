@@ -1,4 +1,5 @@
 package co.com.authservice.model.user;
+import co.com.authservice.model.role.Role;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,4 +22,5 @@ public class User {
     private String phoneNumber;
     private String email;
     private BigDecimal baseSalary;
+    private Role role;
 }

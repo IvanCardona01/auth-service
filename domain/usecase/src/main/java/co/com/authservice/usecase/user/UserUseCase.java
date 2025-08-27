@@ -1,5 +1,6 @@
 package co.com.authservice.usecase.user;
 
+import co.com.authservice.model.role.gateways.RoleRepository;
 import co.com.authservice.model.user.User;
 import co.com.authservice.model.user.exceptions.user.EmailAlreadyExistsException;
 import co.com.authservice.model.user.exceptions.user.InvalidAgeException;
@@ -20,11 +21,13 @@ public class UserUseCase {
     private static final BigDecimal MAX_SALARY = new BigDecimal("15000000");
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
     public Mono<User> saveUser(User user) {
         return Mono.fromRunnable(() -> validateUserBusinessRules(user))
                 .then(validateIfEmailAlreadyInUse(user.getEmail()))
-                .then(userRepository.saveUser(user));
+                .then(assignDefaultRoleIfNeeded(user))
+                .flatMap(userRepository::saveUser);
     }
 
     public Flux<User> getAll() {
@@ -85,5 +88,15 @@ public class UserUseCase {
                     }
                     return Mono.empty();
                 });
+    }
+
+    private Mono<User> assignDefaultRoleIfNeeded(User user) {
+        if (user.getRole() != null) {
+            return Mono.just(user);
+        }
+
+        return roleRepository.findByName("CLIENT")
+                .doOnNext(user::setRole)
+                .thenReturn(user);
     }
 }

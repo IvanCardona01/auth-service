@@ -1,7 +1,9 @@
 package co.com.authservice.api.mapper;
 
 import co.com.authservice.api.dto.request.CreateUserDTO;
+import co.com.authservice.api.dto.response.RoleResponseDTO;
 import co.com.authservice.api.dto.response.UserResponseDTO;
+import co.com.authservice.model.role.Role;
 import co.com.authservice.model.user.User;
 import org.mapstruct.Mapper;
 
@@ -9,4 +11,5 @@ import org.mapstruct.Mapper;
 public interface UserDTOMapper {
     User toModel(CreateUserDTO createUserDTO);
     UserResponseDTO toResponse(User user);
+    RoleResponseDTO toResponse(Role role);
 }

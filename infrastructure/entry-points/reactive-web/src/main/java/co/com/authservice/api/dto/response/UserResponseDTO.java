@@ -10,6 +10,7 @@ public record UserResponseDTO(
         String address,
         String phoneNumber,
         BigDecimal baseSalary,
-        String email
+        String email,
+        RoleResponseDTO role
 ) {
 }

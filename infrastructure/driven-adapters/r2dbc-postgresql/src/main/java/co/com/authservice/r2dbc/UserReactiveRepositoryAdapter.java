@@ -1,5 +1,6 @@
 package co.com.authservice.r2dbc;
 
+import co.com.authservice.model.role.Role;
 import co.com.authservice.model.user.User;
 import co.com.authservice.model.user.gateways.UserRepository;
 import co.com.authservice.r2dbc.entity.UserEntity;
@@ -14,14 +15,21 @@ public class UserReactiveRepositoryAdapter
         extends ReactiveAdapterOperations<User, UserEntity, Long, UserReactiveRepository>
         implements UserRepository {
 
-    public UserReactiveRepositoryAdapter(UserReactiveRepository repository, ObjectMapper mapper) {
+    private final RoleReactiveRepository roleRepository;
+
+    public UserReactiveRepositoryAdapter(UserReactiveRepository repository, RoleReactiveRepository roleRepository, ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, User.class));
+        this.roleRepository = roleRepository;
     }
 
     @Override
     public Mono<User> saveUser(User user) {
-        return repository.save(toData(user))
-                .map(saved -> mapper.map(saved, User.class));
+        UserEntity userEntity = mapper.map(user, UserEntity.class);
+        if (user.getRole() != null) {
+            userEntity.setRoleId(user.getRole().getId());
+        }
+        return repository.save(userEntity)
+                .flatMap(this::mapToUserWithRole);
     }
 
     @Override
@@ -31,6 +39,20 @@ public class UserReactiveRepositoryAdapter
 
     @Override
     public Flux<User> getAll() {
-        return repository.findAll().map(user -> mapper.map(user, User.class));
+        return repository.findAll()
+                .flatMap(this::mapToUserWithRole);
+    }
+
+    private Mono<User> mapToUserWithRole(UserEntity entity) {
+        User user = mapper.map(entity, User.class);
+
+        if (entity.getRoleId() != null) {
+            return roleRepository.findById(entity.getRoleId())
+                    .map(roleEntity -> mapper.map(roleEntity, Role.class))
+                    .doOnNext(user::setRole)
+                    .thenReturn(user);
+        }
+
+        return Mono.just(user);
     }
 }

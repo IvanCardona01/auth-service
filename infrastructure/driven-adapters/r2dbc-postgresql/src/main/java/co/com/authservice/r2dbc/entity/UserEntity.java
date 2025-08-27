@@ -17,9 +17,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity {
-
     @Id
-    private Long id;  // ← Cambiar a Long para BIGSERIAL
+    private Long id;
 
     private String name;
     private String lastname;
@@ -33,4 +32,8 @@ public class UserEntity {
     private BigDecimal baseSalary;
 
     private String email;
+
+
+    @Column("role_id")
+    private Long roleId;
 }
