@@ -30,9 +30,7 @@ public class Handler {
                 .map(userDTOMapper::toModel)
                 .flatMap(userUseCase::saveUser)
                 .flatMap(savedUser -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userDTOMapper.toResponse(savedUser)))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .bodyValue("Error retrieving users: " + error.getMessage()));
+                        .bodyValue(userDTOMapper.toResponse(savedUser)));
     }
 
     public Mono<ServerResponse> getAllUsers(ServerRequest request) {
@@ -41,9 +39,7 @@ public class Handler {
                 .collectList()
                 .flatMap(users -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(users))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .bodyValue("Error retrieving users: " + error.getMessage()));
+                        .bodyValue(users));
     }
 
     private Mono<CreateUserDTO> validateDTO(CreateUserDTO dto) {
