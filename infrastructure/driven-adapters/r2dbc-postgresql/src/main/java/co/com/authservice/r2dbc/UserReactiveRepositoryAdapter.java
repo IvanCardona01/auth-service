@@ -5,12 +5,14 @@ import co.com.authservice.model.user.User;
 import co.com.authservice.model.user.gateways.UserRepository;
 import co.com.authservice.r2dbc.entity.UserEntity;
 import co.com.authservice.r2dbc.helper.ReactiveAdapterOperations;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Repository
 public class UserReactiveRepositoryAdapter
         extends ReactiveAdapterOperations<User, UserEntity, Long, UserReactiveRepository>
@@ -31,6 +33,8 @@ public class UserReactiveRepositoryAdapter
     @Override
     public Mono<User> saveUser(User user) {
         return saveUserInternal(user)
+                .doOnNext(u -> log.debug("✅ [PERSISTENCE] User saved in transaction"))
+                .doOnError(error -> log.error("❌ [PERSISTENCE] Transaction failed: {}", error.getMessage()))
                 .as(transactionalOperator::transactional);
     }
     
@@ -38,8 +42,10 @@ public class UserReactiveRepositoryAdapter
         UserEntity userEntity = mapper.map(user, UserEntity.class);
         if (user.getRole() != null) {
             userEntity.setRoleId(user.getRole().getId());
+            log.debug("🔗 [PERSISTENCE] Mapping role ID: {}", user.getRole().getId());
         }
         return repository.save(userEntity)
+                .doOnNext(entity -> log.debug("💾 [PERSISTENCE] Entity saved with ID: {}", entity.getId()))
                 .flatMap(this::mapToUserWithRole);
     }
 

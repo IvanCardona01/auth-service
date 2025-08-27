@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class Handler {
@@ -26,20 +28,25 @@ public class Handler {
 
     public Mono<ServerResponse> createUser(ServerRequest request) {
         return request.bodyToMono(CreateUserDTO.class)
+                .doOnNext(dto -> log.info("🔵 [REQUEST] Creating user with email: {}", dto.email()))
                 .flatMap(this::validateDTO)
                 .map(userDTOMapper::toModel)
                 .flatMap(userUseCase::saveUser)
+                .doOnNext(user -> log.info("✅ [RESPONSE] User created successfully with ID: {}", user.getId()))
                 .flatMap(savedUser -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userDTOMapper.toResponse(savedUser)));
+                        .bodyValue(userDTOMapper.toResponse(savedUser)))
+                .doOnError(error -> log.error("❌ [ERROR] Failed to create user: {}", error.getMessage()));
     }
 
     public Mono<ServerResponse> getAllUsers(ServerRequest request) {
         return userUseCase.getAll()
                 .map(userDTOMapper::toResponse)
                 .collectList()
+                .doOnNext(users -> log.info("✅ [RESPONSE] Retrieved {} users successfully", users.size()))
                 .flatMap(users -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(users));
+                        .bodyValue(users))
+                .doOnError(error -> log.error("❌ [ERROR] Failed to retrieve users: {}", error.getMessage()));
     }
 
     private Mono<CreateUserDTO> validateDTO(CreateUserDTO dto) {
