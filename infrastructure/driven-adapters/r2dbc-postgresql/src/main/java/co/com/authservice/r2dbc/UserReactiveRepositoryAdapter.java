@@ -31,6 +31,23 @@ public class UserReactiveRepositoryAdapter
     }
 
     @Override
+    public Mono<User> getByDocumentNumber(String documentNumber) {
+        return repository.getByDocumentNumber(documentNumber)
+                .flatMap(this::mapToUserWithRole);
+    }
+
+    @Override
+    public Mono<Boolean> existByDocumentNumber(String documentNumber) {
+        return repository.existsByDocumentNumber(documentNumber);
+    }
+
+    @Override
+    public Flux<User> getAll() {
+        return repository.findAll()
+                .flatMap(this::mapToUserWithRole);
+    }
+
+    @Override
     public Mono<User> saveUser(User user) {
         return saveUserInternal(user)
                 .doOnNext(u -> log.debug("✅ [PERSISTENCE] User saved in transaction"))
@@ -52,12 +69,6 @@ public class UserReactiveRepositoryAdapter
     @Override
     public Mono<Boolean> existByEmail(String email) {
         return repository.existsByEmail(email);
-    }
-
-    @Override
-    public Flux<User> getAll() {
-        return repository.findAll()
-                .flatMap(this::mapToUserWithRole);
     }
 
     private Mono<User> mapToUserWithRole(UserEntity entity) {

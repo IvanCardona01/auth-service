@@ -5,8 +5,8 @@ import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 
-import java.math.BigInteger;
-
 public interface UserReactiveRepository extends ReactiveCrudRepository<UserEntity, Long>, ReactiveQueryByExampleExecutor<UserEntity> {
     Mono<Boolean> existsByEmail(String email);
+    Mono<UserEntity> getByDocumentNumber(String documentNumber);
+    Mono<Boolean> existsByDocumentNumber(String documentNumber);
 }

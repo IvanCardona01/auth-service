@@ -1,10 +1,7 @@
 package co.com.authservice.api.config;
 
 import co.com.authservice.api.dto.response.ErrorResponseDTO;
-import co.com.authservice.model.user.exceptions.user.EmailAlreadyExistsException;
-import co.com.authservice.model.user.exceptions.user.InvalidAgeException;
-import co.com.authservice.model.user.exceptions.user.InvalidSalaryException;
-import co.com.authservice.model.user.exceptions.user.UserValidationException;
+import co.com.authservice.model.user.exceptions.user.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -65,6 +62,8 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
 
     private ErrorInfo determineError(Throwable ex) {
         return switch (ex) {
+            case UserNotFoundException e ->
+                    new ErrorInfo(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND", e.getMessage());
             case EmailAlreadyExistsException e ->
                     new ErrorInfo(HttpStatus.CONFLICT, "EMAIL_ALREADY_EXISTS", e.getMessage());
             case InvalidAgeException e ->

@@ -2,10 +2,7 @@ package co.com.authservice.usecase.user;
 
 import co.com.authservice.model.role.gateways.RoleRepository;
 import co.com.authservice.model.user.User;
-import co.com.authservice.model.user.exceptions.user.EmailAlreadyExistsException;
-import co.com.authservice.model.user.exceptions.user.InvalidAgeException;
-import co.com.authservice.model.user.exceptions.user.InvalidSalaryException;
-import co.com.authservice.model.user.exceptions.user.UserValidationException;
+import co.com.authservice.model.user.exceptions.user.*;
 import co.com.authservice.model.user.gateways.UserRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -23,71 +20,97 @@ public class UserUseCase {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public Mono<User> saveUser(User user) {
-        return Mono.fromRunnable(() -> validateUserBusinessRules(user))
-                .then(validateIfEmailAlreadyInUse(user.getEmail()))
-                .then(assignDefaultRoleIfNeeded(user))
-                .flatMap(userRepository::saveUser);
-    }
-
     public Flux<User> getAll() {
         return userRepository.getAll();
     }
 
-    private void validateUserBusinessRules(User user) {
-        validateFields(user);
-        validateAge(user);
-        validateSalary(user.getBaseSalary());
+    public Mono<User> getByDocumentNumber(String documentNumber) {
+        if (documentNumber == null || documentNumber.isEmpty()) {
+            return Mono.error(new UserValidationException("documentNumber", "The Document Number is required"));
+        }
+
+        return userRepository.existByDocumentNumber(documentNumber)
+                .flatMap(exist -> {
+                    if (exist) {
+                        return userRepository.getByDocumentNumber(documentNumber);
+                    }
+                    return Mono.error(new UserNotFoundException("User not found"));
+                });
     }
 
-    private void validateFields(User user) {
-        requireNonBlank(user.getName(), "name");
-        requireNonBlank(user.getLastname(), "lastname");
-        requireNonBlank(user.getEmail(), "email");
+    public Mono<User> saveUser(User user) {
+        return validateUserBusinessRules(user)
+                .then(validateIfEmailAlreadyInUse(user.getEmail()))
+                .then(validateIfDocumentNumberAlreadyInUse(user.getDocumentNumber()))
+                .then(assignDefaultRoleIfNeeded(user))
+                .flatMap(userRepository::saveUser);
+    }
 
+    private Mono<Void> validateUserBusinessRules(User user) {
+        return validateFields(user)
+                .then(validateAge(user))
+                .then(validateSalary(user.getBaseSalary()));
+    }
+
+    private Mono<Void> validateFields(User user) {
+        if (isBlank(user.getName())) {
+            return Mono.error(new UserValidationException("name", "name is required"));
+        }
+        if (isBlank(user.getLastname())) {
+            return Mono.error(new UserValidationException("lastname", "lastname is required"));
+        }
+        if (isBlank(user.getEmail())) {
+            return Mono.error(new UserValidationException("email", "email is required"));
+        }
         if (user.getBaseSalary() == null) {
-            throw new UserValidationException("baseSalary", "baseSalary is required");
+            return Mono.error(new UserValidationException("baseSalary", "baseSalary is required"));
         }
 
         String regex = "^[A-Za-z0-9+_.-]+@(.+)$";
         if (!user.getEmail().matches(regex)) {
-            throw new UserValidationException("email", "email format is invalid");
+            return Mono.error(new UserValidationException("email", "email format is invalid"));
         }
+
+        return Mono.empty();
     }
 
-    private void requireNonBlank(String fieldValue, String fieldName) {
-        if (fieldValue == null || fieldValue.isBlank()) {
-            throw new UserValidationException(fieldName, fieldName + " is required");
-        }
-    }
-
-    private void validateAge(User user) {
+    private Mono<Void> validateAge(User user) {
         if (user.getBirthdayDate() != null) {
             int age = Period.between(user.getBirthdayDate(), LocalDate.now()).getYears();
             if (age < 18) {
-                throw new InvalidAgeException(age);
+                return Mono.error(new InvalidAgeException(age));
             }
         }
+        return Mono.empty();
     }
 
-    private void validateSalary(BigDecimal salary) {
+    private Mono<Void> validateSalary(BigDecimal salary) {
         if (salary.compareTo(MIN_SALARY) < 0) {
-            throw InvalidSalaryException.tooLow(salary);
+            return Mono.error(InvalidSalaryException.tooLow(salary));
         }
-
         if (salary.compareTo(MAX_SALARY) > 0) {
-            throw InvalidSalaryException.tooHigh(salary);
+            return Mono.error(InvalidSalaryException.tooHigh(salary));
         }
+        return Mono.empty();
     }
 
     private Mono<Void> validateIfEmailAlreadyInUse(String email) {
         return userRepository.existByEmail(email)
-                .flatMap(exists -> {
-                    if (exists) {
-                        return Mono.error(new EmailAlreadyExistsException(email));
-                    }
-                    return Mono.empty();
-                });
+                .flatMap(exists -> exists
+                        ? Mono.error(new EmailAlreadyExistsException(email))
+                        : Mono.empty()
+                );
+    }
+
+    private Mono<Void> validateIfDocumentNumberAlreadyInUse(String documentNumber) {
+        if (isBlank(documentNumber)) {
+            return Mono.error(new UserValidationException("documentNumber", "documentNumber is required"));
+        }
+        return userRepository.existByDocumentNumber(documentNumber)
+                .flatMap(exists -> exists
+                        ? Mono.error(new UserValidationException("documentNumber", "documentNumber already exists"))
+                        : Mono.empty()
+                );
     }
 
     private Mono<User> assignDefaultRoleIfNeeded(User user) {
@@ -98,5 +121,9 @@ public class UserUseCase {
         return roleRepository.findByName("CLIENT")
                 .doOnNext(user::setRole)
                 .thenReturn(user);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

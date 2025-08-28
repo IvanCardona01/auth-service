@@ -124,10 +124,60 @@ public class RouterRest {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/user/{documentId}",
+                    method = RequestMethod.GET,
+                    beanClass = Handler.class,
+                    beanMethod = "getUserByDocumentNumber",
+                    operation = @Operation(
+                            operationId = "getUserByDocumentNumber",
+                            summary = "Get user by document number",
+                            description = "Retrieves a user from the system using their document number.",
+                            tags = {"Users"},
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "User retrieved successfully",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = UserResponseDTO.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Bad request. Possible errors: USER_NOT_FOUND (no user exists with the given document), USER_VALIDATION_ERROR (invalid document number format or validation failure)",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponseDTO.class,
+                                                            example = "{\"code\": \"USER_NOT_FOUND\", \"message\": \"User with document number 123456789 not found\", \"timestamp\": \"2024-01-15T10:30:00\", \"path\": \"/api/v1/user/document\"}")
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "405",
+                                            description = "HTTP method not allowed",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponseDTO.class,
+                                                            example = "{\"code\": \"METHOD_NOT_ALLOWED\", \"message\": \"Method not supported\", \"timestamp\": \"2024-01-15T10:30:00\", \"path\": \"/api/v1/user/document\"}")
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Internal server error",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponseDTO.class,
+                                                            example = "{\"code\": \"INTERNAL_SERVER_ERROR\", \"message\": \"An unexpected error occurred\", \"timestamp\": \"2024-01-15T10:30:00\", \"path\": \"/api/v1/user/document\"}")
+                                            )
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(GET("/api/v1/user").and(accept(MediaType.APPLICATION_JSON)), handler::getAllUsers)
+                .andRoute(GET("/api/v1/user/{documentNumber}"), handler::getUserByDocumentNumber)
                 .andRoute(POST("/api/v1/user").and(accept(MediaType.APPLICATION_JSON)), handler::createUser);
     }
 }

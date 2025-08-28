@@ -3,20 +3,14 @@ package co.com.authservice.api;
 import co.com.authservice.api.dto.request.CreateUserDTO;
 import co.com.authservice.api.mapper.UserDTOMapper;
 import co.com.authservice.usecase.user.UserUseCase;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -29,7 +23,6 @@ public class Handler {
     public Mono<ServerResponse> createUser(ServerRequest request) {
         return request.bodyToMono(CreateUserDTO.class)
                 .doOnNext(dto -> log.info("🔵 [REQUEST] Creating user with email: {}", dto.email()))
-                .flatMap(this::validateDTO)
                 .map(userDTOMapper::toModel)
                 .flatMap(userUseCase::saveUser)
                 .doOnNext(user -> log.info("✅ [RESPONSE] User created successfully with ID: {}", user.getId()))
@@ -49,14 +42,16 @@ public class Handler {
                 .doOnError(error -> log.error("❌ [ERROR] Failed to retrieve users: {}", error.getMessage()));
     }
 
-    private Mono<CreateUserDTO> validateDTO(CreateUserDTO dto) {
-        Set<ConstraintViolation<CreateUserDTO>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            String errorMessage = violations.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.joining(", "));
-            return Mono.error(new ValidationException(errorMessage));
-        }
-        return Mono.just(dto);
+    public Mono<ServerResponse> getUserByDocumentNumber(ServerRequest serverRequest) {
+        String documentNumber = serverRequest.pathVariable("documentNumber");
+
+        log.info("✅ [PATH] Getting user with Document Number: {}", documentNumber);
+
+        return userUseCase.getByDocumentNumber(documentNumber)
+                .doOnNext(user -> log.info("✅ [RESPONSE] User retrieved successfully with ID: {}", user.getId()))
+                .flatMap(user -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(userDTOMapper.toResponse(user)))
+                .doOnError(error -> log.error("❌ [ERROR] Failed to retrieve user: {}", error.getMessage()));
     }
 }

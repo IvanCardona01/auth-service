@@ -8,7 +8,10 @@ import java.time.LocalDate;
 public record UserResponseDTO(
         @Schema(description = "Unique user ID", example = "1")
         Long id,
-        
+
+        @Schema(description = "Unique document number", example = "123456789")
+        String  documentNumber,
+
         @Schema(description = "User's first name", example = "Juan")
         String name,
         

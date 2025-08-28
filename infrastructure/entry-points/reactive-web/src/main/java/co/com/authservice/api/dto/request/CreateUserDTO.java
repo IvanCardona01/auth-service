@@ -7,6 +7,9 @@ import java.time.LocalDate;
 
 @Schema(description = "DTO for creating a new user")
 public record CreateUserDTO(
+        @Schema(description = "User's document number", example = "123456789", required = true)
+        String documentNumber,
+        
         @Schema(description = "User's first name", example = "Juan", required = true)
         String name,
         

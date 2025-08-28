@@ -20,6 +20,8 @@ public class UserEntity {
     @Id
     private Long id;
 
+    @Column("document_number")
+    private String documentNumber;
     private String name;
     private String lastname;
 
