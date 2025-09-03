@@ -26,3 +26,5 @@ include ':api-rest'
 project(':api-rest').projectDir = file('./infrastructure/entry-points/api-rest')
 include ':reactive-web'
 project(':reactive-web').projectDir = file('./infrastructure/entry-points/reactive-web')
+include ':jwt-token'
+project(':jwt-token').projectDir = file('./infrastructure/driven-adapters/jwt-token')

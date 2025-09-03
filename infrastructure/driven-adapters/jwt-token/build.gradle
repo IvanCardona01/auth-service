@@ -1,0 +1,14 @@
+dependencies {
+    implementation project(':model')
+    
+    // Spring Boot for configuration and DI
+    implementation 'org.springframework.boot:spring-boot-starter'
+    
+    // JWT dependencies
+    implementation "io.jsonwebtoken:jjwt-api:${jwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jwtVersion}"
+    
+    // Security for JWT validation
+    implementation 'org.springframework.security:spring-security-crypto'
+}

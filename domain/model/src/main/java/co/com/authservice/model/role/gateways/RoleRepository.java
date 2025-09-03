@@ -6,5 +6,6 @@ import reactor.core.publisher.Mono;
 
 public interface RoleRepository {
     Mono<Role> findByName(String name);
+    Mono<Role> findById(Long id);
     Flux<Role> findAll();
 }

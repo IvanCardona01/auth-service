@@ -23,6 +23,12 @@ public class RoleReactiveRepositoryAdapter
         return repository.findByName(name)
                 .map(entity -> mapper.map(entity, Role.class));
     }
+    
+    @Override
+    public Mono<Role> findById(Long id) {
+        return repository.findById(id)
+                .map(entity -> mapper.map(entity, Role.class));
+    }
 
     @Override
     public Flux<Role> findAll() {

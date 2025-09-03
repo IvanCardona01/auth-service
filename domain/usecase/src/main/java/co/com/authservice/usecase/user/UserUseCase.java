@@ -46,6 +46,14 @@ public class UserUseCase {
                 .flatMap(userRepository::saveUser);
     }
 
+    public Mono<User> saveUserWithRole(User user, Long roleId) {
+        return validateUserBusinessRules(user)
+                .then(validateIfEmailAlreadyInUse(user.getEmail()))
+                .then(validateIfDocumentNumberAlreadyInUse(user.getDocumentNumber()))
+                .then(assignRoleById(user, roleId))
+                .flatMap(userRepository::saveUser);
+    }
+
     private Mono<Void> validateUserBusinessRules(User user) {
         return validateFields(user)
                 .then(validateAge(user))
@@ -61,6 +69,9 @@ public class UserUseCase {
         }
         if (isBlank(user.getEmail())) {
             return Mono.error(new UserValidationException("email", "email is required"));
+        }
+        if (isBlank(user.getPassword())) {
+            return Mono.error(new UserValidationException("password", "password is required"));
         }
         if (user.getBaseSalary() == null) {
             return Mono.error(new UserValidationException("baseSalary", "baseSalary is required"));
@@ -119,6 +130,17 @@ public class UserUseCase {
         }
 
         return roleRepository.findByName("CLIENT")
+                .doOnNext(user::setRole)
+                .thenReturn(user);
+    }
+    
+    private Mono<User> assignRoleById(User user, Long roleId) {
+        if (roleId == null) {
+            return assignDefaultRoleIfNeeded(user);
+        }
+        
+        return roleRepository.findById(roleId)
+                .switchIfEmpty(Mono.error(new UserValidationException("roleId", "Role not found with ID: " + roleId)))
                 .doOnNext(user::setRole)
                 .thenReturn(user);
     }

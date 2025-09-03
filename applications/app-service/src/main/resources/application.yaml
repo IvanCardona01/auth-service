@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
     name: "authservice"
@@ -16,10 +16,6 @@ logging:
   level:
     root: INFO
     co.com.authservice: DEBUG
-
-# R2DBC PostgreSQL Configuration (Local PostgreSQL)
-# Make sure PostgreSQL is running: brew services start postgresql@15
-# Database created with: createdb authservice_db
 adapters:
   r2dbc:
     host: localhost
@@ -52,3 +48,8 @@ springdoc:
   api-docs:
     enabled: true
   packages-to-scan: co.com.authservice.api
+
+# JWT Configuration
+jwt:
+  secret: "mySecretKey123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+  expiration: 86400

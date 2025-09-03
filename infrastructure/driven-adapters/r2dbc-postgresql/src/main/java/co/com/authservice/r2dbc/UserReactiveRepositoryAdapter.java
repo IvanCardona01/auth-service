@@ -70,6 +70,18 @@ public class UserReactiveRepositoryAdapter
     public Mono<Boolean> existByEmail(String email) {
         return repository.existsByEmail(email);
     }
+    
+    @Override
+    public Mono<User> findByEmail(String email) {
+        return repository.findByEmail(email)
+                .flatMap(this::mapToUserWithRole);
+    }
+    
+    @Override
+    public Mono<User> findById(Long id) {
+        return repository.findById(id)
+                .flatMap(this::mapToUserWithRole);
+    }
 
     private Mono<User> mapToUserWithRole(UserEntity entity) {
         User user = mapper.map(entity, User.class);

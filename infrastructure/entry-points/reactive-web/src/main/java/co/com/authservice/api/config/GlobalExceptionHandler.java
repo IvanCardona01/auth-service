@@ -80,6 +80,8 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
                     new ErrorInfo(HttpStatus.BAD_REQUEST, "INVALID_JSON", "Invalid JSON format: " + e.getMessage());
             case MethodNotAllowedException e ->
                     new ErrorInfo(HttpStatus.METHOD_NOT_ALLOWED, "METHOD_NOT_ALLOWED", "Method not supported");
+            case IllegalArgumentException e ->
+                    new ErrorInfo(HttpStatus.BAD_REQUEST, "BAD_REQUEST", e.getMessage());
 
             default ->
                     new ErrorInfo(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "An unexpected error occurred");

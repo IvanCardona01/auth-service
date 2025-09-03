@@ -29,6 +29,12 @@ public record CreateUserDTO(
         BigDecimal baseSalary,
         
         @Schema(description = "Email address (must be unique)", example = "juan.perez@email.com", required = true)
-        String email
+        String email,
+        
+        @Schema(description = "User password (required)", example = "mySecurePassword123", required = true)
+        String password,
+        
+        @Schema(description = "Role ID (optional, defaults to CLIENT if not provided)", example = "1")
+        Long roleId
 ) {
 }
